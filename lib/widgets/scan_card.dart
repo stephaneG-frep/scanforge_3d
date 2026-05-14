@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/scan_project.dart';
+import '../models/scan_status.dart';
 
 class ScanCard extends StatelessWidget {
   final ScanProject project;

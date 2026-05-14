@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/gradient_scaffold.dart';
+
 class GuideScreen extends StatelessWidget {
   const GuideScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GradientScaffold(
       appBar: AppBar(title: const Text('Guide de scan 3D')),
       body: ListView(
         padding: const EdgeInsets.all(16),

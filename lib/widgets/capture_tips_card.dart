@@ -5,7 +5,7 @@ class CaptureTipsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tips = const [
+    const tips = [
       'Tourne lentement autour de l\'objet',
       'Garde la meme distance',
       'Utilise une lumiere diffuse',

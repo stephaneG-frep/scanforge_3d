@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/scan_provider.dart';
+import '../models/scan_status.dart';
+import '../widgets/gradient_scaffold.dart';
 import 'capture_screen.dart';
 import 'export_screen.dart';
 import 'model_preview_screen.dart';
@@ -14,8 +18,9 @@ class ScanDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<ScanProvider>();
     final project = provider.getById(projectId);
+    final formattedDate = DateFormat('dd/MM/yyyy HH:mm', 'fr_FR').format(project.createdAt);
 
-    return Scaffold(
+    return GradientScaffold(
       appBar: AppBar(title: Text(project.name)),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -28,7 +33,7 @@ class ScanDetailScreen extends StatelessWidget {
                 children: [
                   Text(project.name, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 8),
-                  Text('Date: ${project.createdAt.toLocal()}'),
+                  Text('Date: $formattedDate'),
                   Text('Photos: ${project.imagePaths.length}'),
                   Text('Statut: ${project.status.label}'),
                 ],
@@ -66,9 +71,12 @@ class ScanDetailScreen extends StatelessWidget {
           ),
           OutlinedButton.icon(
             onPressed: () async {
-              await context.read<ScanProvider>().deleteProject(project.id);
+              final providerRead = context.read<ScanProvider>();
+              final navigator = Navigator.of(context);
+              await HapticFeedback.heavyImpact();
+              await providerRead.deleteProject(project.id);
               if (!context.mounted) return;
-              Navigator.pop(context);
+              navigator.pop();
             },
             icon: const Icon(Icons.delete_outline),
             label: const Text('Supprimer'),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/scan_provider.dart';
+import '../widgets/gradient_scaffold.dart';
 import '../widgets/progress_stepper.dart';
 import 'scan_detail_screen.dart';
 
@@ -33,7 +35,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
   }
 
   Future<void> _run() async {
-    await context.read<ScanProvider>().processProject(
+    final provider = context.read<ScanProvider>();
+    await provider.processProject(
           projectId: widget.projectId,
           onStep: (step) {
             if (!mounted) return;
@@ -41,12 +44,13 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           },
         );
     if (!mounted) return;
+    await HapticFeedback.mediumImpact();
     setState(() => _done = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GradientScaffold(
       appBar: AppBar(title: const Text('Traitement')),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -55,9 +59,13 @@ class _ProcessingScreenState extends State<ProcessingScreen>
             const SizedBox(height: 10),
             const CircularProgressIndicator(),
             const SizedBox(height: 14),
-            Text(
-              _done ? 'Traitement termine' : 'Traitement en cours...',
-              style: Theme.of(context).textTheme.titleMedium,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: Text(
+                _done ? 'Traitement termine' : 'Traitement en cours...',
+                key: ValueKey<bool>(_done),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
             const SizedBox(height: 16),
             Expanded(

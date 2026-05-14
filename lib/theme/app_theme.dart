@@ -21,14 +21,25 @@ class AppTheme {
     );
 
     return base.copyWith(
+      textTheme: base.textTheme.copyWith(
+        headlineMedium: base.textTheme.headlineMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+        ),
+        titleLarge: base.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        titleMedium: base.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: _bg,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
         color: _surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        elevation: 4,
+        shadowColor: Colors.black45,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

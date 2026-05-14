@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/scan_provider.dart';
+import '../services/permission_service.dart';
+import '../widgets/gradient_scaffold.dart';
 import '../widgets/capture_tips_card.dart';
 import 'processing_screen.dart';
 
@@ -16,15 +19,29 @@ class CaptureScreen extends StatefulWidget {
 
 class _CaptureScreenState extends State<CaptureScreen> {
   final ImagePicker _picker = ImagePicker();
+  final PermissionService _permissionService = PermissionService();
   bool _busy = false;
 
   Future<void> _pick(ImageSource source) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final provider = context.read<ScanProvider>();
     if (_busy) return;
     setState(() => _busy = true);
     try {
+      final granted = await _permissionService.ensureCameraAndMediaAccess();
+      if (!granted) {
+        await HapticFeedback.heavyImpact();
+        if (!mounted) return;
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Permissions camera/photos requises.')),
+        );
+        return;
+      }
+
       final image = await _picker.pickImage(source: source, imageQuality: 90);
       if (image != null && mounted) {
-        await context.read<ScanProvider>().addPhoto(
+        await HapticFeedback.selectionClick();
+        await provider.addPhoto(
               projectId: widget.projectId,
               sourcePath: image.path,
             );
@@ -40,7 +57,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
     final count = project.imagePaths.length;
     final progress = (count / 40).clamp(0.0, 1.0);
 
-    return Scaffold(
+    return GradientScaffold(
       appBar: AppBar(title: const Text('Capture guidee')),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -56,7 +73,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CircularProgressIndicator(value: progress, strokeWidth: 7),
+                        TweenAnimationBuilder<double>(
+                          tween: Tween<double>(begin: 0, end: progress),
+                          duration: const Duration(milliseconds: 450),
+                          builder: (context, value, _) =>
+                              CircularProgressIndicator(value: value, strokeWidth: 7),
+                        ),
                         Center(child: Text('${(progress * 100).round()}%')),
                       ],
                     ),
@@ -96,12 +118,15 @@ class _CaptureScreenState extends State<CaptureScreen> {
           const SizedBox(height: 14),
           ElevatedButton(
             onPressed: count >= 10
-                ? () => Navigator.push(
+                ? () {
+                    HapticFeedback.mediumImpact();
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => ProcessingScreen(projectId: widget.projectId),
                       ),
-                    )
+                    );
+                  }
                 : null,
             child: const Text('Lancer le traitement'),
           ),
