@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/scan_project.dart';
 import '../models/scan_status.dart';
+import '../services/cloud_photogrammetry_service.dart';
 import '../services/export_service.dart';
 import '../services/fake_photogrammetry_service.dart';
 import '../services/local_storage_service.dart';
@@ -11,6 +12,7 @@ import '../services/local_storage_service.dart';
 class ScanProvider extends ChangeNotifier {
   final LocalStorageService _storage = LocalStorageService();
   final FakePhotogrammetryService _fakeService = FakePhotogrammetryService();
+  final CloudPhotogrammetryService _cloudService = CloudPhotogrammetryService();
   final ExportService _exportService = ExportService();
 
   final List<ScanProject> _projects = [];
@@ -77,10 +79,22 @@ class ScanProvider extends ChangeNotifier {
     await _persist();
 
     try {
-      await _fakeService.runFakePipeline(project: _projects[i], onStep: onStep);
+      String modelPath;
+      if (_cloudService.isConfigured) {
+        modelPath = await _cloudService.runCloudPipeline(
+          projectId: _projects[i].id,
+          imagePaths: _projects[i].imagePaths,
+          onStep: onStep,
+        );
+      } else {
+        modelPath = await _fakeService.runFakePipeline(
+          project: _projects[i],
+          onStep: onStep,
+        );
+      }
       _projects[i] = _projects[i].copyWith(
         status: ScanStatus.completed,
-        modelPath: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+        modelPath: modelPath,
       );
     } catch (_) {
       _projects[i] = _projects[i].copyWith(status: ScanStatus.failed);

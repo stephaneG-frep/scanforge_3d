@@ -1,7 +1,7 @@
 import '../models/scan_project.dart';
 
 class FakePhotogrammetryService {
-  Future<void> runFakePipeline({
+  Future<String> runFakePipeline({
     required ScanProject project,
     required void Function(int stepIndex) onStep,
   }) async {
@@ -9,5 +9,6 @@ class FakePhotogrammetryService {
       await Future<void>.delayed(const Duration(seconds: 1));
       onStep(i);
     }
+    return 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
   }
 }
